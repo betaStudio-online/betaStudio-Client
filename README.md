@@ -6,6 +6,7 @@
  
 :::::::::::::::::::::::::::::::::::::::::betastudio-client.js:::::::::::::::::::::::::::
 license_type:MIT
+
 description:This module setsup the betaStudio client.
 Properties:
 config - holds global config data (for client)
