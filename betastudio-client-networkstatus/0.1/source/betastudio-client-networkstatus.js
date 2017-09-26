@@ -102,14 +102,7 @@ if(_testMode){
     this.config = config; 
 /************************************Public Methods************************************/
  
- this.Logout = function(){
-     
-     _private_Logout();
- }
- this.Login = function(){
-     _private_ShowLogin();
-     
- } 
+
 /*******************************Private Properties**************************************/
     
  
@@ -121,9 +114,9 @@ if(_testMode){
  
 var _private_initOffline_banner = function (_doc){
     if(!_doc){var _doc = document; } 
-    var str =  '<div id="snoop_offline_indicator" style="z-index:9999999999999;"><div class="offline_wrap"><h1>No network!</h1><p>Could not connect to server!</p><image src="betaStudiologo_square.png"  ><h3>Enable the network to use betaStudio!</h3></div></div>';
+    var str =  '<div id="betaStudio_offline_indicator" style="z-index:9999999999999;"><div class="offline_wrap"><h1>No network!</h1><p>Could not connect to server!</p><image src="betaStudiologo_square.png"  ><h3>Enable the network to use betaStudio!</h3></div></div>';
     var banner = _doc.createElement("SPAN");
-    banner.id="snoop_offline_indicator_wrap";
+    banner.id="betaStudio_offline_indicator_wrap";
     banner.innerHTML=str;
     _doc.body.appendChild(banner);
     _private_updateIndicator (_doc);
