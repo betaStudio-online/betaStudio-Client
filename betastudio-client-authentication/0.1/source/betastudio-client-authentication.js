@@ -153,11 +153,16 @@ var _private_setupLoginFormClient = function (_doc){
             betaStudio_module_client.userdata.betaStudio_var_last_authentication_status = "checked";
          _doc.getElementById(betaStudio_module_client.config.dashboardFrame).contentWindow.location  = betaStudio_module_client.config.serverAdminPath+"?loginfromClient=true";
         if(data.indexOf("success")> -1){
-            betaStudio_module_clientbetaStudio_module_client.betaStudio_var_username = data.split("||")[1];
-            betaStudio_module_clientbetaStudio_module_client.betaStudio_var_user_type = data.split("||")[2];
-            betaStudio_module_client.betaStudio_var_last_authentication_status = "login_attempted";
+          
+             
+            betaStudio_module_client.userdata.betaStudio_var_username = data.split("||")[1];
+            betaStudio_module_client.userdata.betaStudio_var_user_type = data.split("||")[2];
+            betaStudio_module_client.userdata.betaStudio_var_last_authentication_status = "login_attempted";
+            
+              
             _private_Update_authentication_ui();
         }else if(data.indexOf("loggedin")> -1){
+             
             betaStudio_module_client.userdata.betaStudio_var_username = data.split("||")[1];
             betaStudio_module_client.userdata.betaStudio_var_user_type = data.split("||")[2];
             betaStudio_module_client.userdata.betaStudio_var_last_authentication_status = "checked";
@@ -186,23 +191,39 @@ var _private_ShowLogin = function (){
 var _private_HideLogin = function (){$("#"+config.loginModal).hide();}
  
 var _private_Update_authentication_ui = function (){
+     //login_attemptedlogin_attemptedlogin_attemptedlogin_attemptedlogin_attemptedlogin_attempted
+   
+   
+    
      $( "#"+config.resultInspectorPane).empty(); 
      if(betaStudio_module_client.userdata.betaStudio_var_username == ""){
          $( "#"+config.usernameLabelinHeader).empty().append( "Guest" );
          $( "#"+config.logoutLoginLabelinHeader ).empty().append( "<span onclick='betaStudio_module_client_authentication.Login()'>Login</span>" );
          _private_ShowLogin();
          
-        }else if(betaStudio_module_client.userdata.betaStudio_var_username != ""){  
+         
+        }else if(betaStudio_module_client.userdata.betaStudio_var_username != ""){ 
+            
+             _private_LoadUsersProjects();
+            
+            
          $( "#"+config.usernameLabelinHeader).empty().append( betaStudio_module_client.userdata.betaStudio_var_username );
          $( "#"+config.logoutLoginLabelinHeader ).empty().append( "<span onclick='betaStudio_module_client_authentication.Logout();  '>Logout</span>" );
             _private_HideLogin();
+            
+            
         }else {
          $( "#"+config.usernameLabelinHeader).empty().append( "Guest" );
          $( "#"+config.logoutLoginLabelinHeader ).empty().append( "<span onclick='betaStudio_module_client_authentication.Login()'>Login</span>" ); 
              _private_ShowLogin();
         }
+ 
+    
+    
      if(betaStudio_module_client.userdata.betaStudio_var_last_authentication_status == "login_attempted" && betaStudio_module_client.userdata.betaStudio_var_username == "" ){
-            $( "#"+config.resultInspectorPane).empty().append( "<span style='color:red'>Username or password incorrect</span>" ); 
+            
+         
+         $( "#"+config.resultInspectorPane).empty().append( "<span style='color:red'>Username or password incorrect</span>" ); 
             _private_ShowLogin();
         }else{
             $( "#"+config.resultInspectorPane).empty(); 
@@ -256,14 +277,23 @@ var _private_Check_Auth = function (){
             betaStudio_module_client.userdata.betaStudio_var_user_type = "";
             betaStudio_module_client.userdata.betaStudio_var_last_authentication_status = "checked";
             if(data.indexOf("success")> -1){
+                
             betaStudio_module_client.userdata.betaStudio_var_username = data.split("||")[1];
             betaStudio_module_client.userdata.betaStudio_var_user_type = data.split("||")[2];
             betaStudio_module_client.userdata.betaStudio_var_last_authentication_status = "login_attempted";
             _private_Update_authentication_ui();
+                  
+                
             }else if(data.indexOf("loggedin")> -1){
+                
+               
             betaStudio_module_client.userdata.betaStudio_var_username = data.split("||")[1];
             betaStudio_module_client.userdata.betaStudio_var_user_type = data.split("||")[2];
             betaStudio_module_client.userdata.betaStudio_var_last_authentication_status = "checked";
+                
+                   
+                
+                
             _private_Update_authentication_ui();
             }else if(data.indexOf("failed")> -1){
             betaStudio_module_client.userdata.betaStudio_var_username = data.split("||")[1];
@@ -287,7 +317,10 @@ var _private_Check_Auth = function (){
  }  
        
     
-    
+ var _private_LoadUsersProjects = function(){
+      
+     betaStudio_module_client.LoadUsersProjects();
+ }   
     
  
 
@@ -313,7 +346,9 @@ var _private_Init = function(_doc, _testMode){
      
     _private_initAuthentication_banner(_doc);  
     _private_setupLoginFormClient(_doc);
-    _private_Check_Auth();  
+    _private_Check_Auth(); 
+   
+    
  
 }
 
