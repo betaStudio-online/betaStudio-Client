@@ -77,6 +77,7 @@ var betaStudio_module_client_config = {
     betaStudioFrame:"betaStudio_frame",
     betaStudioFrameWrap:"betaStudio_wrpper_container",
     betaStudioFrameGoBt:"betaStudio_url_go",
+    betaStudioTestcycleIdLabel:"betaStudio_testcycleid",
     betaStudioSpinner:"betaStudio_spinner", 
     betaStudioRightNav:"betaStudio_right_bar", 
     betaStudioReport:"betaStudio_report",
@@ -96,7 +97,9 @@ var betaStudio_module_client_config = {
     colorblineDetailsPane:"details_pane_colorblind",
     xrayDetailsPane:"details_pane_xray",
     screenreaderDetailsPane:"details_pane_screenreader",
-    bugreporterDetailsPane:"details_pane_bugreporter"
+    bugreporterDetailsPane:"details_pane_bugreporter" 
+    
+    
     
     
 }
@@ -106,11 +109,11 @@ this.module_name = "betaStudio-Client";
 this.module_description = "This module setsup the betaStudio client."
 this.module_license_type = "MIT";
 this.module_dependancies = "jQuery";/* if any dependancies like jquery etc, metion here as an info */
-this.module_version = "0.1.0";
-this.module_lastupdated = "21-09-2017";
+this.module_version = "0.1.1";
+this.module_lastupdated = "04-10-2017";
 this.module_authors = "Samir Dash|";/* Additional authors append your name with a pipe (|) as suffix */
 this.module_author_emails = "sdash@redhat.com|";
-this.module_help = "config|userdata|FinishUpdateURL()|showWorkspace()|showDashBoard()|hideReportPanel()|showReportPanel()|showBugReporter()|addOnScreen()|addOnScreen()|showAccessibilityReport()|runAccessibilityReport()|loadURLOnKey()|closeReportPanel()|showJSReport()|showCSSReport()|showRuntimeReport()|openReportPanel()|"/* Additional public methods and props append with a pipe (|) as suffix */
+this.module_help = "config|userdata|FinishUpdateURL()|showWorkspace()|showDashBoard()|hideReportPanel()|showReportPanel()|showBugReporter()|addOnScreen()|addOnScreen()|showAccessibilityReport()|runAccessibilityReport()|loadURLOnKey()|closeReportPanel()|showJSReport()|showCSSReport()|showRuntimeReport()|openReportPanel()|LoadUsersProjects()|UpdateCurrentProjectDetails()|AppendReport()|AddBug()|AddBugToGithub()|"/* Additional public methods and props append with a pipe (|) as suffix */
 /************************************Config**********************************/    
 if(!config){
     
@@ -125,6 +128,7 @@ if(!config){
     betaStudioFrame:"betaStudio_frame",
     betaStudioFrameWrap:"betaStudio_wrpper_container",
     betaStudioFrameGoBt:"betaStudio_url_go",
+    betaStudioTestcycleIdLabel:"betaStudio_testcycleid",
     betaStudioSpinner:"betaStudio_spinner", 
     betaStudioRightNav:"betaStudio_right_bar", 
     betaStudioReport:"betaStudio_report",
@@ -158,23 +162,52 @@ if(!config){
     this.userdata = {
         betaStudio_var_username:"",
         betaStudio_var_user_type:"",
-        betaStudio_var_last_authentication_status:""
+        betaStudio_var_last_authentication_status:"",
+        betaStudio_var_projectslist:"",/* the projects dropdown */
+        
+        betaStudio_var_environment:"",
+        betaStudio_var_client:"pc-client",
+        
+        betaStudio_var_current_project_id:"",
+        betaStudio_var_current_project_title:"",
+        betaStudio_var_current_project_url:"",
+        betaStudio_var_current_testcycle_id:"",
+        betaStudio_var_current_report_id:"",
+        betaStudio_var_current_report_url:"",
+        betaStudio_var_current_report_section_accessibility_inspection_dump:"",
+        betaStudio_var_current_report_section_js_inspection_dump:"",
+        betaStudio_var_current_report_section_css_inspection_dump:"",
+        betaStudio_var_current_report_section_runtime_inspection_dump:"",
+        betaStudio_var_current_report_section_colorblind_inspection_dump:"",
+        betaStudio_var_current_report_section_screenreader_inspection_dump:"",
+        betaStudio_var_current_report_section_cosmetic_xray_inspection_dump:"",
+        betaStudio_var_current_report_section_cosmetic_onscreen_inspection_dump:"",
+        betaStudio_var_current_report_section_other_inspection_dump:""
+        
     
     }
     this.modules = {};
 /************************************Public Methods************************************/
  
  this.FinishUpdateURL = function (URL){  
+     userdata.betaStudio_var_current_report_url = URL;
+     
             if(URL != undefined && URL != null ){ 
             URL = URL.toString();
             $('#' +config.betaStudioSpinner).hide();
             $('#' +config.betaStudioAddressBar).css("color", "#000000");
                 _private_checkIframeLoaded();  
-            if(URL.indexOf("http") == 0){
-            document.getElementById(config.betaStudioAddressBar).value = URL; 
-            }else{
-            document.getElementById(config.betaStudioAddressBar).value = ""; 
-            }
+            if(URL.indexOf("http://") == 0 ||URL.indexOf("https://") == 0 ){
+            
+                
+                
+                document.getElementById(config.betaStudioAddressBar).value = URL; 
+                
+                
+                }else{
+                document.getElementById(config.betaStudioAddressBar).value = ""; 
+                    
+                }
             }
 } 
 this.showWorkspace = function (){
@@ -184,6 +217,10 @@ this.showWorkspace = function (){
     showReportPanel();
 } 
 this.showDashBoard = function (){
+    
+    document.getElementById(config.dashboardFrame).src= document.getElementById(config.dashboardFrame).src;
+    
+    
     $("#"+config.dashboardFrame).show();$("#"+config.betaStudioFrame).hide();
     $("#"+config.betaStudioAddressBar).removeClass("selected");
     $("#"+config.betaStudioDashboardBar).addClass("selected");
@@ -236,7 +273,7 @@ this.showAccessibilityReport = function  (_navitem){
 this.loadURLOnKey = function (event){
          
     if (event.keyCode == 13) {
-       _private_LoadURL();
+       _private_LoadURLInit();
     } 
     }
 this.closeReportPanel = function (){
@@ -282,6 +319,59 @@ this.RunCSSReport = function (){
 }
 
 
+this.LoadUsersProjects = function(){
+    
+    
+    userdata.betaStudio_var_current_testcycle_id ="";
+    var url = "http://localhost/api/projects_api.php";  
+            var posting = $.post( url, { user: userdata.betaStudio_var_username    } );
+            // Put the results in a div
+            posting.done(function( data ) {
+            userdata.betaStudio_var_projectslist = data;
+               
+                _private_Update_Projects_UI();
+                
+            });
+    
+    
+    
+    
+    
+}
+this.UpdateCurrentProjectDetails = function(){
+    userdata.betaStudio_var_current_testcycle_id ="";
+    var currentStr = document.getElementById(config.betaStudioAddressBar).value;
+        
+        userdata.betaStudio_var_current_project_id=currentStr.split("||")[0];
+        userdata.betaStudio_var_current_project_title=currentStr.split("||")[1];
+        userdata.betaStudio_var_current_project_url=currentStr.split("||")[2];
+    userdata.betaStudio_var_current_report_url= currentStr.split("||")[2];//initial url for report is same as project url 
+     
+   
+}
+
+
+
+
+
+this.AppendReport = function(report_id,section_type,str_dump){
+    
+    
+}
+
+this.AddBug = function(report_id,section_type,bug_title, bug_description, bug_status, bug_screenshot){
+    
+    
+}
+
+this.AddBugToGithub = function(bug_id, github_project){
+    
+    
+}
+
+
+
+
 /*******************************Private Properties**************************************/
     
     
@@ -295,11 +385,11 @@ var _private_openReportPanel = function (_navitem){
     var _ifrmwrap = document.getElementById(config.betaStudioFrameWrap); 
     var _rightnav = document.getElementById(config.betaStudioRightNav); 
     var _reportWin = document.getElementById(config.betaStudioReport); 
-_ifrmwrap.style.width = "calc(100% - 300px)";
-_rightnav.style.right = "270px";
-_reportWin.style.right = "0px";
-$(_navitem).addClass("selected");
-$("#closeicon").show();$("#openicon").hide();
+    _ifrmwrap.style.width = "calc(100% - 300px)";
+    _rightnav.style.right = "270px";
+    _reportWin.style.right = "0px";
+    $(_navitem).addClass("selected");
+    $("#closeicon").show();$("#openicon").hide();
     
 }
 
@@ -312,27 +402,121 @@ var _private_clearRightnavHighlight = function (){
     } 
 
 
+var _private_LoadCurrentTestCycle = function(){
+    
+           
+         if(userdata.betaStudio_var_current_project_id != ""){var url = "http://localhost/api/testcycle_api.php";  
+            var posting = $.post( url, { user: userdata.betaStudio_var_username, project_id: userdata.betaStudio_var_current_project_id, env:userdata.betaStudio_var_environment, client:userdata.betaStudio_var_client   } );
+             
+            posting.done(function( data ) {
+            
+             
+             var d = JSON.parse(data)
+            
+            if(d.testcycle_creation_success == true){
+            userdata.betaStudio_var_current_testcycle_id = d.testcycle_id;
+             
+                
+            }
+           
+               
+                _private_Update_Projects_UI();
+                _private_LoadURL();
+                
+            });
+                                                             
+                                                             
+                                                            
+                                                             
+        }else{
+            
+            
+            userdata.betaStudio_var_current_project_url ="welcome.html";
+            _private_LoadURL();
+            
+            
+        }
+          
+          
+           
+    
+    
+}
+
+var _private_LoadCurrentReport = function(){
+    
+           
+         if(userdata.betaStudio_var_current_project_id != ""){
+             
+             var url = "http://localhost/api/add_report_api.php";  
+            var posting = $.post( url, { user: userdata.betaStudio_var_username, testcycle_id: userdata.betaStudio_var_current_testcycle_id, url:userdata.betaStudio_var_current_report_url     } );
+             
+            posting.done(function( data ) {
+            
+             
+             var d = JSON.parse(data)
+            
+            if(d.report_creation_success == true){
+            userdata.betaStudio_var_current_report_id = d.report_id;
+             
+                alert(userdata.betaStudio_var_current_report_id );
+                
+            }
+           
+               
+                _private_Update_Projects_UI();
+                 //alert("post loading complete");
+            RunCSSReport();
+            runAccessibilityReport();
+             //alert("post runAccessibilityReport ");
+                
+            });
+                                                             
+                                                              
+                                                            
+                                                             
+        }else{
+            
+            
+            userdata.betaStudio_var_current_project_url ="welcome.html";
+            _private_LoadURL();
+            
+            
+        }
+          
+          
+           
+    
+    
+}
 
 
-var _private_LoadURL = function (){ 
+var _private_LoadURLInit = function (){ 
     
-     $('#' +config.betaStudioSpinner).show();
-     var app_url = document.getElementById(config.betaStudioAddressBar).value;
     
-      
+    
+    $('#' +config.betaStudioSpinner).show();
+    _private_LoadCurrentTestCycle();
+    
+    
+     
+}
+var _private_LoadURL = function(){
+  
+    var app_url = userdata.betaStudio_var_current_project_url; 
+         
      var $iframe = $('#' + config.betaStudioFrame);
     if ( $iframe.length ) {
-         
-        
-        
         $iframe.attr('src',app_url);   
-        
-
         return false;
     }
     return true;
 }
-$('#' +config.betaStudioFrameGoBt ).bind( "click",_private_LoadURL);     
+
+$('#' +config.betaStudioFrameGoBt ).bind( "click",_private_LoadURLInit);     
+    
+    
+    
 var _private_StartUpdateURL = function (URL){ 
       
 
@@ -383,11 +567,16 @@ var _private_checkIframeLoaded = function () {
     window.setTimeout('_private_checkIframeLoaded();', 100);
 }
 var _private_afterLoading = function (){
-     
-    //alert("post loading complete");
-            RunCSSReport();
-            runAccessibilityReport();
-             //alert("post runAccessibilityReport ");
+     if(userdata.betaStudio_var_current_project_url == "welcome.html"){
+        
+        
+        }else{
+            
+  _private_LoadCurrentReport();
+           
+            
+        }
+    
     
     
 }
@@ -399,7 +588,14 @@ var _private_afterLoading = function (){
 
 
 
-
+var _private_Update_Projects_UI = function(){
+    
+    if(userdata.betaStudio_var_current_testcycle_id.indexOf("!T") > -1){ $('#'+config.betaStudioTestcycleIdLabel).html("Review-Cycle Id: T"+userdata.betaStudio_var_current_testcycle_id.split("!T")[1]);
+   }else{ $('#'+config.betaStudioTestcycleIdLabel).html("Review-Cycle Id: ");
+   }
+     $('#'+config.betaStudioAddressBar).html(userdata.betaStudio_var_projectslist);
+ 
+}
 
 
 
