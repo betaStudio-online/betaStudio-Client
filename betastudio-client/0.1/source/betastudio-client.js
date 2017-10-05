@@ -78,6 +78,7 @@ var betaStudio_module_client_config = {
     betaStudioFrameWrap:"betaStudio_wrpper_container",
     betaStudioFrameGoBt:"betaStudio_url_go",
     betaStudioTestcycleIdLabel:"betaStudio_testcycleid",
+    betaStudioReportIdLabel:"betaStudio_reportid", 
     betaStudioSpinner:"betaStudio_spinner", 
     betaStudioRightNav:"betaStudio_right_bar", 
     betaStudioReport:"betaStudio_report",
@@ -129,6 +130,7 @@ if(!config){
     betaStudioFrameWrap:"betaStudio_wrpper_container",
     betaStudioFrameGoBt:"betaStudio_url_go",
     betaStudioTestcycleIdLabel:"betaStudio_testcycleid",
+    betaStudioReportIdLabel:"betaStudio_reportid",    
     betaStudioSpinner:"betaStudio_spinner", 
     betaStudioRightNav:"betaStudio_right_bar", 
     betaStudioReport:"betaStudio_report",
@@ -182,7 +184,8 @@ if(!config){
         betaStudio_var_current_report_section_screenreader_inspection_dump:"",
         betaStudio_var_current_report_section_cosmetic_xray_inspection_dump:"",
         betaStudio_var_current_report_section_cosmetic_onscreen_inspection_dump:"",
-        betaStudio_var_current_report_section_other_inspection_dump:""
+        betaStudio_var_current_report_section_other_inspection_dump:"",
+        betaStudio_var_current_report_page_dom:""
         
     
     }
@@ -191,7 +194,7 @@ if(!config){
  
  this.FinishUpdateURL = function (URL){  
      userdata.betaStudio_var_current_report_url = URL;
-     
+      
             if(URL != undefined && URL != null ){ 
             URL = URL.toString();
             $('#' +config.betaStudioSpinner).hide();
@@ -354,7 +357,62 @@ this.UpdateCurrentProjectDetails = function(){
 
 
 
-this.AppendReport = function(report_id,section_type,str_dump){
+this.AppendReport = function(section_type,str_dump){
+    
+        userdata.betaStudio_var_current_report_page_dom = document.getElementById(config.betaStudioFrame).contentWindow.document.documentElement.outerHTML; 
+    //alert(userdata.betaStudio_var_current_report_page_dom);
+     
+            if(section_type == "accessibility-inspection"){
+                 userdata.betaStudio_var_current_report_section_accessibility_inspection_dump = str_dump;
+            }else if(section_type == "js-inspection"){
+                 userdata.betaStudio_var_current_report_section_js_inspection_dump = str_dump;
+            }else if(section_type == "css-inspection"){
+                 userdata.betaStudio_var_current_report_section_css_inspection_dump = str_dump;
+            }else if(section_type == "accessibility-inspection"){
+                 userdata.betaStudio_var_current_report_section_runtime_inspection_dump = str_dump;
+            }else if(section_type == "accessibility-inspection"){
+                 userdata.betaStudio_var_current_report_section_colorblind_inspection_dump = str_dump;
+            }else if(section_type == "accessibility-inspection"){
+                 userdata.betaStudio_var_current_report_section_screenreader_inspection_dump = str_dump;
+            }else if(section_type == "accessibility-inspection"){
+                 userdata.betaStudio_var_current_report_section_cosmetic_xray_inspection_dump = str_dump;
+            }else if(section_type == "accessibility-inspection"){
+                 userdata.betaStudio_var_current_report_section_cosmetic_onscreen_inspection_dump = str_dump;
+            }else if(section_type == "accessibility-inspection"){
+                 userdata.betaStudio_var_current_report_section_other_inspection_dump = str_dump;
+            } 
+       
+       
+    
+    
+    
+    
+       
+        var url = "http://localhost/api/append_report_api.php";  
+        var posting = $.post( url, { 
+            
+            user: userdata.betaStudio_var_username, 
+            report_id: userdata.betaStudio_var_current_report_id, 
+            accessibility_inspection:userdata.betaStudio_var_current_report_section_accessibility_inspection_dump,
+            js_inspection:userdata.betaStudio_var_current_report_section_js_inspection_dump,
+            css_inspection:userdata.betaStudio_var_current_report_section_css_inspection_dump,
+            runtime_inspection:userdata.betaStudio_var_current_report_section_runtime_inspection_dump,
+            colorblind_inspection:userdata.betaStudio_var_current_report_section_colorblind_inspection_dump,
+            screenreader_inspection:userdata.betaStudio_var_current_report_section_screenreader_inspection_dump,
+            cosmetic_xray_inspection:userdata.betaStudio_var_current_report_section_cosmetic_xray_inspection_dump,
+            cosmetic_onscreen_inspection:userdata.betaStudio_var_current_report_section_cosmetic_onscreen_inspection_dump,
+            other_inspection:userdata.betaStudio_var_current_report_section_other_inspection_dump,
+            page_dom:userdata.betaStudio_var_current_report_page_dom 
+
+        
+        } );
+        // Put the results in a div
+        posting.done(function( data ) {
+        userdata.betaStudio_var_projectslist = data;
+
+             
+
+        });
     
     
 }
@@ -459,7 +517,9 @@ var _private_LoadCurrentReport = function(){
             if(d.report_creation_success == true){
             userdata.betaStudio_var_current_report_id = d.report_id;
              
-                alert(userdata.betaStudio_var_current_report_id );
+               // alert(userdata.betaStudio_var_current_report_id );
+                
+   
                 
             }
            
@@ -590,8 +650,15 @@ var _private_afterLoading = function (){
 
 var _private_Update_Projects_UI = function(){
     
-    if(userdata.betaStudio_var_current_testcycle_id.indexOf("!T") > -1){ $('#'+config.betaStudioTestcycleIdLabel).html("Review-Cycle Id: T"+userdata.betaStudio_var_current_testcycle_id.split("!T")[1]);
-   }else{ $('#'+config.betaStudioTestcycleIdLabel).html("Review-Cycle Id: ");
+    if(userdata.betaStudio_var_current_testcycle_id.indexOf("!T") > -1){ 
+        
+        $('#'+config.betaStudioTestcycleIdLabel).html("Review-Cycle Id: T"+userdata.betaStudio_var_current_testcycle_id.split("!T")[1]);
+    $('#'+config.betaStudioReportIdLabel).html("Report Id: R"+userdata.betaStudio_var_current_report_id.split("!R")[1]); 
+  
+    
+    }else{ $('#'+config.betaStudioTestcycleIdLabel).html("Review-Cycle Id: ");
+         $('#'+config.betaStudioReportIdLabel).html("Report Id: ");
+         
    }
      $('#'+config.betaStudioAddressBar).html(userdata.betaStudio_var_projectslist);
  
