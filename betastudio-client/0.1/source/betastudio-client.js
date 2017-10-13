@@ -95,10 +95,11 @@ var betaStudio_module_client_config = {
     jsErrorDetailsPane:"details_pane_jserror",
     accessibilityDetailsPane:"details_pane_accessibility",
     runtimeDetailsPane:"details_pane_runtime",
-    colorblineDetailsPane:"details_pane_colorblind",
+    colorblindDetailsPane:"details_pane_colorblind",
     xrayDetailsPane:"details_pane_xray",
     screenreaderDetailsPane:"details_pane_screenreader",
-    bugreporterDetailsPane:"details_pane_bugreporter" 
+    bugreporterDetailsPane:"details_pane_bugreporter",
+    currentColorBlindFilter:null
     
     
     
@@ -147,10 +148,12 @@ if(!config){
     jsErrorDetailsPane:"details_pane_jserror",
     accessibilityDetailsPane:"details_pane_accessibility",
     runtimeDetailsPane:"details_pane_runtime",
-    colorblineDetailsPane:"details_pane_colorblind",
+    colorblindDetailsPane:"details_pane_colorblind",
     xrayDetailsPane:"details_pane_xray",
     screenreaderDetailsPane:"details_pane_screenreader",
-    bugreporterDetailsPane:"details_pane_bugreporter"
+    bugreporterDetailsPane:"details_pane_bugreporter",
+    currentColorBlindFilter:null
+    
 
    
 }; }else{
@@ -185,7 +188,9 @@ if(!config){
         betaStudio_var_current_report_section_cosmetic_xray_inspection_dump:"",
         betaStudio_var_current_report_section_cosmetic_onscreen_inspection_dump:"",
         betaStudio_var_current_report_section_other_inspection_dump:"",
-        betaStudio_var_current_report_page_dom:""
+        betaStudio_var_current_report_page_dom:"",
+        urlLoadTimerStart:0,
+        urlLoadTime:0
         
     
     }
@@ -193,8 +198,20 @@ if(!config){
 /************************************Public Methods************************************/
  
  this.FinishUpdateURL = function (URL){  
+
+
+   
+    userdata.urlLoadTime = ((parseInt(Date.now())-parseInt(userdata.urlLoadTimerStart))/1000);
+
+
+    console.log("URL load time: "+userdata.urlLoadTime+" Seconds");
+
+
      userdata.betaStudio_var_current_report_url = URL;
-      
+     
+
+
+
             if(URL != undefined && URL != null ){ 
             URL = URL.toString();
             $('#' +config.betaStudioSpinner).hide();
@@ -243,16 +260,47 @@ this.showReportPanel = function (){
     var _rightnav = document.getElementById(config.betaStudioRightNav); 
     var _reportWin = document.getElementById(config.betaStudioReport); 
     $(_ifrmwrap).css("width", "calc(100% - 30px)");
-    $(_rightnav).show();$(_reportWin).show();
+    $(_rightnav).show();
+    
+    //$(_reportWin).show();
 
 
 }
+
+
+
+
+
+
+
+
+
+
 this.showBugReporter = function (_navitem){
     _private_clearRightnavHighlight();
     _private_openReportPanel(_navitem);
     document.getElementById("details_pane_bugreporter").style.display = "block";
 
-}    
+}  
+
+
+
+this.toggleScreen = function(){
+    var _ifrm = document.getElementById(config.betaStudioFrame); 
+    if(!_ifrm.contentWindow.document.getElementById("bb_go_onscreen")  || _ifrm.contentWindow.document.getElementById("bb_go_onscreen") == null){
+       
+        addOnScreen();
+         
+    } else if(_ifrm.contentWindow.document.getElementById("bb_go_onscreen").style.display == "none"){
+       
+        _private_showOnScreen();
+    }else if(_ifrm.contentWindow.document.getElementById("bb_go_onscreen").style.display == "block"){
+        
+         removeOnScreen();
+    }
+
+
+}
 this.addOnScreen = function (){
     var _ifrm = document.getElementById(config.betaStudioFrame); 
     var _scr = document.createElement("SCRIPT");
@@ -261,11 +309,22 @@ this.addOnScreen = function (){
     _scr.setAttribute("src", "http://localhost/betastudio/modules/onscreen/api/js/index.php");
     _scr.setAttribute("type","text/javascript");
     _ifrm.contentWindow.document.body.appendChild(_scr);
-
+    _private_showOnScreen();
     }
-
-
 }  
+this.removeOnScreen = function (){
+    _private_hideOnScreen();
+    /* we only hide and do not really remove */
+}
+
+
+
+
+
+
+
+
+
 this.showAccessibilityReport = function  (_navitem){
     _private_clearRightnavHighlight();
     _private_openReportPanel(_navitem);
@@ -279,9 +338,7 @@ this.loadURLOnKey = function (event){
        _private_LoadURLInit();
     } 
     }
-this.closeReportPanel = function (){
-    
-}
+
 this.showJSReport = function (_navitem){
     _private_clearRightnavHighlight();
     _private_openReportPanel(_navitem);
@@ -296,8 +353,32 @@ this.showCSSReport = function (_navitem){
 this.showRuntimeReport = function (){
     _private_clearRightnavHighlight();
     _private_openReportPanel();
-
+    document.getElementById(config.runtimeDetailsPane).style.display = "block";
 }  
+
+
+
+this.showColorBlindReport = function (){
+    _private_clearRightnavHighlight();
+    _private_openReportPanel();
+    document.getElementById(config.colorblindDetailsPane).style.display = "block";
+} 
+
+this.showScreenreaderReport = function (){
+    _private_clearRightnavHighlight();
+    _private_openReportPanel();
+    document.getElementById(config.screenreaderDetailsPane).style.display = "block";
+} 
+
+this.showXrayAppReport = function (){
+    _private_clearRightnavHighlight();
+    _private_openReportPanel();
+    document.getElementById(config.xrayDetailsPane).style.display = "block";
+} 
+ 
+
+
+
 this.openReportPanel = function (_navitem){
 
     var _ifrmwrap = document.getElementById(config.betaStudioFrameWrap); 
@@ -307,9 +388,29 @@ _ifrmwrap.style.width = "calc(100% - 300px)";
 _rightnav.style.right = "270px";
 _reportWin.style.right = "0px";
 $(_navitem).addClass("selected");
-$("#closeicon").show();$("#openicon").hide();
+$(_reportWin).show();
+$("#closeicon").show();
+$("#openicon").hide();
     
 }
+
+
+this.closeReportPanel = function (){
+    
+     
+        var _ifrmwrap = document.getElementById(config.betaStudioFrameWrap); 
+        var _rightnav = document.getElementById(config.betaStudioRightNav); 
+        var _reportWin = document.getElementById(config.betaStudioReport); 
+        _ifrmwrap.style.width = "calc(100% - 30px)";
+        _rightnav.style.right = "0px";
+        _reportWin.style.right = "0px";
+        $(_rightnav).show();
+        $(_reportWin).hide();
+        $("#closeicon").hide();$("#openicon").show();
+    }
+
+
+
 this.runAccessibilityReport = function (){
 
  betaStudio_module_accessibilityInspector.runAccessibilityReport();
@@ -402,7 +503,8 @@ this.AppendReport = function(section_type,str_dump){
             cosmetic_xray_inspection:userdata.betaStudio_var_current_report_section_cosmetic_xray_inspection_dump,
             cosmetic_onscreen_inspection:userdata.betaStudio_var_current_report_section_cosmetic_onscreen_inspection_dump,
             other_inspection:userdata.betaStudio_var_current_report_section_other_inspection_dump,
-            page_dom:userdata.betaStudio_var_current_report_page_dom 
+            page_dom:userdata.betaStudio_var_current_report_page_dom,
+            convert_to_bugs:true 
 
         
         } );
@@ -428,24 +530,120 @@ this.AddBugToGithub = function(bug_id, github_project){
 }
 
 
+this.Set_Check_NoFilter = function(){
+     var _ifrm = document.getElementById(config.betaStudioFrame); 
+     var _doc = _ifrm.contentWindow.document;
+      betaStudio_module_colorBlind.SetNoFilter(_doc);
+ 
+}
+
+ 
+    
+this.Set_Check_ProtanopiaFilter= function(){
+     var _ifrm = document.getElementById(config.betaStudioFrame); 
+     var _doc = _ifrm.contentWindow.document;
+        betaStudio_module_colorBlind.SetProtanopiaFilter(_doc);
+    
+    
+    
+}
+
+this.Set_Check_ProtanomalyFilter = function(){
+     var _ifrm = document.getElementById(config.betaStudioFrame); 
+     var _doc = _ifrm.contentWindow.document;
+      betaStudio_module_colorBlind.SetProtanomalyFilter(_doc);
+ 
+}
+
+this.Set_Check_DeuteranopiaFilter = function(){
+     var _ifrm = document.getElementById(config.betaStudioFrame); 
+     var _doc = _ifrm.contentWindow.document;
+      betaStudio_module_colorBlind.SetDeuteranopiaFilter(_doc);
+ 
+}
+
+this.Set_Check_DeuteranomalyFilter = function(){
+     var _ifrm = document.getElementById(config.betaStudioFrame); 
+     var _doc = _ifrm.contentWindow.document;
+      betaStudio_module_colorBlind.SetDeuteranomalyFilter(_doc);
+ 
+}
+
+this.Set_Check_TritanopiaFilter = function(){
+     var _ifrm = document.getElementById(config.betaStudioFrame); 
+     var _doc = _ifrm.contentWindow.document;
+      betaStudio_module_colorBlind.SetTritanopiaFilter(_doc);
+ 
+}
+
+this.Set_Check_TritanomalyFilter = function(){
+     var _ifrm = document.getElementById(config.betaStudioFrame); 
+     var _doc = _ifrm.contentWindow.document;
+      betaStudio_module_colorBlind.SetTritanomalyFilter(_doc);
+ 
+}
+
+this.Set_Check_AchromatopsiaFilter = function(){
+     var _ifrm = document.getElementById(config.betaStudioFrame); 
+     var _doc = _ifrm.contentWindow.document;
+      betaStudio_module_colorBlind.SetAchromatopsiaFilter(_doc);
+ 
+}
 
 
+
+this.Set_Check_AchromatomalyFilter = function(){
+     var _ifrm = document.getElementById(config.betaStudioFrame); 
+     var _doc = _ifrm.contentWindow.document;
+      betaStudio_module_colorBlind.SetAchromatomalyFilter(_doc);
+ 
+}
+
+
+
+
+                              
+    
+    
+    
+    
+    
 /*******************************Private Properties**************************************/
     
     
 /*******************************Private Methods**************************************/
  
    
+var _private_showOnScreen = function(){
+    var _ifrm = document.getElementById(config.betaStudioFrame); 
+    if(_ifrm.contentWindow.document.getElementById("bb_go_onscreen")){
+        _ifrm.contentWindow.document.getElementById("bb_go_onscreen").style.display="block";
+
+    }
      
+    
+  }
+var _private_hideOnScreen = function(){
+    
+    var _ifrm = document.getElementById(config.betaStudioFrame); 
+    if(_ifrm.contentWindow.document.getElementById("bb_go_onscreen")){
+    _ifrm.contentWindow.document.getElementById("bb_go_onscreen").style.display="none"; 
+      }
+    }
+    
 
 var _private_openReportPanel = function (_navitem){
 
+
+    
     var _ifrmwrap = document.getElementById(config.betaStudioFrameWrap); 
     var _rightnav = document.getElementById(config.betaStudioRightNav); 
     var _reportWin = document.getElementById(config.betaStudioReport); 
     _ifrmwrap.style.width = "calc(100% - 300px)";
     _rightnav.style.right = "270px";
+    
     _reportWin.style.right = "0px";
+    $(_reportWin).show();
     $(_navitem).addClass("selected");
     $("#closeicon").show();$("#openicon").hide();
     
@@ -456,6 +654,8 @@ var _private_clearRightnavHighlight = function (){
       $("#"+config.betaStudioRightNav+" ul li") .removeClass("selected");
       $("#betaStudio_report .details_pane") .css("display", "none");
          
+
+
         
     } 
 
@@ -517,12 +717,22 @@ var _private_LoadCurrentReport = function(){
             if(d.report_creation_success == true){
             userdata.betaStudio_var_current_report_id = d.report_id;
              
-               // alert(userdata.betaStudio_var_current_report_id );
+                //alert(userdata.betaStudio_var_current_report_id );
                 
    
                 
             }
-           
+            userdata.betaStudio_var_current_report_section_accessibility_inspection_dump = "";
+            userdata.betaStudio_var_current_report_section_accessibility_inspection_dump = "";
+            userdata.betaStudio_var_current_report_section_js_inspection_dump = "";
+            userdata.betaStudio_var_current_report_section_css_inspection_dump = "";
+            userdata.betaStudio_var_current_report_section_runtime_inspection_dump = "";
+            userdata.betaStudio_var_current_report_section_colorblind_inspection_dump = "";
+            userdata.betaStudio_var_current_report_section_screenreader_inspection_dump = "";
+            userdata.betaStudio_var_current_report_section_cosmetic_xray_inspection_dump = "";
+            userdata.betaStudio_var_current_report_section_cosmetic_onscreen_inspection_dump = "";
+            userdata.betaStudio_var_current_report_section_other_inspection_dump = "";
+            userdata.betaStudio_var_current_report_page_dom = "";
                
                 _private_Update_Projects_UI();
                  //alert("post loading complete");
@@ -562,12 +772,14 @@ var _private_LoadURLInit = function (){
      
 }
 var _private_LoadURL = function(){
-  
+    userdata.urlLoadTimerStart = 0; 
     var app_url = userdata.betaStudio_var_current_project_url; 
          
      var $iframe = $('#' + config.betaStudioFrame);
     if ( $iframe.length ) {
-        $iframe.attr('src',app_url);   
+        $iframe.attr('src',app_url);  
+        
+        userdata.urlLoadTimerStart = Date.now();
         return false;
     }
     return true;
@@ -633,8 +845,10 @@ var _private_afterLoading = function (){
         }else{
             
   _private_LoadCurrentReport();
-           
+          
             
+             //currentColorBlindFilter LOAD ------------
+              
         }
     
     
@@ -698,7 +912,7 @@ var _private_Init = function(_doc, _testMode){
     
      showDashBoard();
      _doc.getElementById(config.betaStudioFrameWrap).style.width ="calc(100% - 0px)";
-     
+       
 
 }
 
